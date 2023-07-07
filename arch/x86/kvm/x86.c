@@ -4631,7 +4631,14 @@ static bool kvm_is_vm_type_supported(unsigned long type)
 {
 	return type == KVM_X86_DEFAULT_VM ||
 	       (type == KVM_X86_SW_PROTECTED_VM &&
-		IS_ENABLED(CONFIG_KVM_SW_PROTECTED_VM) && tdp_mmu_enabled);
+		IS_ENABLED(CONFIG_KVM_SW_PROTECTED_VM) && tdp_mmu_enabled) ||
+	       (type == KVM_X86_SNP_VM &&
+		 IS_ENABLED(CONFIG_KVM_AMD_SEV) && tdp_mmu_enabled);
+}
+
+bool kvm_is_vm_type(struct kvm *kvm, unsigned long type)
+{
+	return kvm->arch.vm_type == type;
 }
 
 int kvm_vm_ioctl_check_extension(struct kvm *kvm, long ext)
@@ -4835,6 +4842,8 @@ int kvm_vm_ioctl_check_extension(struct kvm *kvm, long ext)
 		r = BIT(KVM_X86_DEFAULT_VM);
 		if (kvm_is_vm_type_supported(KVM_X86_SW_PROTECTED_VM))
 			r |= BIT(KVM_X86_SW_PROTECTED_VM);
+		if (kvm_is_vm_type_supported(KVM_X86_SNP_VM))
+			r |= BIT(KVM_X86_SNP_VM);
 		break;
 	default:
 		break;
